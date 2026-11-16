@@ -27,8 +27,26 @@ def export_proposal(db,id):
     run=get_run(db,item.run_id);result=run.result;out=io.StringIO();writer=csv.writer(out)
     writer.writerow(['proposal','reviewer','note','fingerprint','ridge','repeats','seed','left_id','right_id','extra_votes','scope'])
     writer.writerow([item.name,item.reviewed_by,item.reviewer_note,result['fingerprint'],run.ridge,run.repeats,run.seed,item.left_id,item.right_id,item.extra_votes,'补充评议调度；不自动立项；bootstrap不是后验'])
-    writer.writerow(['code','title','ability_sum_zero','average_rank','rank_q025','rank_q975','first_place_share','rank_frequency'])
-    for c in result['concepts']:writer.writerow([c['code'],c['title'],c['ability'],c['rank'],c['rank_low'],c['rank_high'],c['first_share'],str(c['rank_frequency'])])
+    sources=result.get('evidence_sources') or {}
+    # Runs completed before session grouping have no extra fields; their export
+    # stays byte-for-byte the historical layout so already-distributed proposals
+    # and their consumers are unaffected.
+    extended=bool(result.get('rank_ranges')) or bool(sources)
+    legacy=sources.get('legacy') or {};sessions=sources.get('sessions') or {}
+    if extended:
+        writer.writerow(['evidence_legacy_pairs','evidence_legacy_votes','evidence_sessions','evidence_session_choices','rank_range_primary'])
+        writer.writerow([legacy.get('pairs',''),legacy.get('votes',''),sessions.get('sessions',''),sessions.get('choices',''),result.get('primary_range','')])
+        # Keep the historical column prefix (rank_q025/rank_q975/first_place_share/
+        # rank_frequency) so previously distributed proposals stay parseable; those
+        # columns now carry the primary (session-grouped) range. Session and per-pair
+        # breakdowns are appended, never substituted.
+        writer.writerow(['code','title','ability_sum_zero','average_rank','rank_q025','rank_q975','first_place_share','rank_frequency','session_rank_q025','session_rank_q975','session_first_place_share','pair_rank_q025','pair_rank_q975','pair_first_place_share','rank_frequency_session','rank_frequency_pair'])
+        for c in result['concepts']:
+            s=c.get('range_session') or {};p=c.get('range_pair') or {}
+            writer.writerow([c['code'],c['title'],c['ability'],c['rank'],c['rank_low'],c['rank_high'],c['first_share'],str(c['rank_frequency']),s.get('low',''),s.get('high',''),s.get('first_share',''),p.get('low',''),p.get('high',''),p.get('first_share',''),str(s.get('frequency','')),str(p.get('frequency',''))])
+    else:
+        writer.writerow(['code','title','ability_sum_zero','average_rank','rank_q025','rank_q975','first_place_share','rank_frequency'])
+        for c in result['concepts']:writer.writerow([c['code'],c['title'],c['ability'],c['rank'],c['rank_low'],c['rank_high'],c['first_share'],str(c['rank_frequency'])])
     writer.writerow(['left_code','right_code','probability_model'])
     for i,c in enumerate(result['concepts']):
         for j in range(i+1,len(result['concepts'])):writer.writerow([c['code'],result['concepts'][j]['code'],result['probabilities'][i][j]])

@@ -1,4 +1,5 @@
-import {useEffect,useState} from 'react';import {studyStore,loadStudies,saveStudy} from '../stores/studies';import {inputStore,loadInputs} from '../stores/inputs';import {researchStore,loadRuns} from '../stores/research';import {authStore,canEdit} from '../stores/auth';import {useTask} from '../hooks/useTask';import StudySelect from '../components/StudySelect';import ComparisonGraph from '../components/ComparisonGraph';import ErrorNotice from '../components/common/ErrorNotice';export default function Overview(){const {items,selected}=studyStore.use(),{concepts,pairs}=inputStore.use(),{runs}=researchStore.use(),{user}=authStore.use();const {error,perform}=useTask();const [open,setOpen]=useState(false);useEffect(()=>{perform(loadStudies);perform(loadRuns)},[]);useEffect(()=>{if(selected)perform(()=>loadInputs(selected))},[selected]);const study=items.find(s=>s.id===selected);return <>
+import {useEffect,useState} from 'react';import {studyStore,loadStudies,saveStudy} from '../stores/studies';import {inputStore,loadInputs} from '../stores/inputs';import {researchStore,loadRuns} from '../stores/research';
+import {sessionStore,loadSessions} from '../stores/sessions';import {authStore,canEdit} from '../stores/auth';import {useTask} from '../hooks/useTask';import StudySelect from '../components/StudySelect';import ComparisonGraph from '../components/ComparisonGraph';import ErrorNotice from '../components/common/ErrorNotice';export default function Overview(){const {items,selected}=studyStore.use(),{concepts,pairs}=inputStore.use(),{runs}=researchStore.use(),{sessions}=sessionStore.use(),{user}=authStore.use();const {error,perform}=useTask();const [open,setOpen]=useState(false);useEffect(()=>{perform(loadStudies);perform(loadRuns)},[]);useEffect(()=>{if(selected)perform(()=>Promise.all([loadInputs(selected),loadSessions(selected)]).then(()=>undefined))},[selected]);const study=items.find(s=>s.id===selected);return <>
 <div className="folio-line">
 <span>RESEARCH FOLIO / 2026.11</span>
 <span>17位策展研究员 · 匿名作品方案</span>
@@ -34,15 +35,16 @@ import {useEffect,useState} from 'react';import {studyStore,loadStudies,saveStud
 </div>
 <div>
 <small>有票比较边</small>
-<strong>{pairs.length}<i>对</i>
+<strong>{pairs.length}<i>对旧汇总</i>
 </strong>
 </div>
 <div>
-<small>独立成对票数</small>
+<small>旧汇总票数</small>
 <strong>{pairs.reduce((n,p)=>n+p.left_wins+p.right_wins,0).toLocaleString()}<i>票</i>
 </strong>
+<small className="evidence-line">{sessions.filter(s=>s.status==='valid').length}份有效会话 · {sessions.filter(s=>s.status!=='valid').length}份隔离</small>
 </div>
-<p>能力采用总和为零的尺度。<br/>bootstrap呈现重采样名次变化，<br/>不表示“作品最优”的后验概率。</p>
+<p>能力采用总和为零的尺度。<br/>会话按整组重采样，旧汇总票逐对独立；<br/>范围不表示“作品最优”的后验概率。</p>
 </section>
 <section className="workflow-row">
 <div>

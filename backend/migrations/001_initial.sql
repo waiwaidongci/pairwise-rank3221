@@ -17,6 +17,7 @@ CREATE TABLE comparison_studies (
 	name VARCHAR(140) NOT NULL,
 	context VARCHAR(1000) NOT NULL,
 	source_file VARCHAR(140) NOT NULL,
+	evidence_version INTEGER DEFAULT 0 NOT NULL,
 	PRIMARY KEY (id),
 	UNIQUE (code)
 )
@@ -106,6 +107,44 @@ CREATE TABLE review_proposals (
 	FOREIGN KEY(run_id) REFERENCES ranking_runs (id),
 	FOREIGN KEY(left_id) REFERENCES concepts (id),
 	FOREIGN KEY(right_id) REFERENCES concepts (id)
+)
+
+;
+
+
+CREATE TABLE review_sessions (
+	id SERIAL NOT NULL,
+	study_id INTEGER NOT NULL,
+	session_key VARCHAR(80) NOT NULL,
+	revision INTEGER NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	quarantine_reason VARCHAR(600) NOT NULL,
+	choices JSON NOT NULL,
+	expected_pairs JSON NOT NULL,
+	content_digest VARCHAR(64) NOT NULL,
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE (study_id, session_key),
+	FOREIGN KEY(study_id) REFERENCES comparison_studies (id)
+)
+
+;
+
+
+CREATE TABLE review_session_revisions (
+	id SERIAL NOT NULL,
+	session_id INTEGER NOT NULL,
+	revision INTEGER NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	quarantine_reason VARCHAR(600) NOT NULL,
+	choices JSON NOT NULL,
+	expected_pairs JSON NOT NULL,
+	content_digest VARCHAR(64) NOT NULL,
+	replaced_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE (session_id, revision),
+	FOREIGN KEY(session_id) REFERENCES review_sessions (id)
 )
 
 ;

@@ -5,3 +5,5 @@ class RunStatus(StrEnum):
     QUEUED='queued'; RUNNING='running'; COMPLETED='completed'; FAILED='failed'
 class ProposalStatus(StrEnum):
     DRAFT='draft'; APPROVED='approved'; REJECTED='rejected'
+class SessionStatus(StrEnum):
+    VALID='valid'; QUARANTINED='quarantined'

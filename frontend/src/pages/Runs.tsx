@@ -22,7 +22,8 @@ import {useEffect,useState} from 'react';import {loadStudies,studyStore} from '.
 <button className="primary" disabled={busy||!canEdit(user)}>{busy?'提交中…':'冻结票数并排队 →'}</button>{!canEdit(user)&&<p className="margin-note">观察员可读取结果；请策展分析员提交计算。</p>}</form>
 <aside className="margin-note">
 <b>每一次重现，重新拟合</b>
-<p>每对总票数固定，按该对观测胜率抽取Binomial票数；保留每次能力与名次。它刻画成对iid假设下的重采样变化，不是贝叶斯后验。</p>
+<p>提交时在同一证据版本内冻结会话与旧汇总票：并发修订不会让快照混入两个版本，历史快照与已出补票依据保持原样。</p>
+<p>重采样按会话成组进行：整份会话连同其全部选择一起抽出，同一评议人的相关选择只算一个单位；无法还原会话的旧汇总票仍按逐对固定总票独立重采样，并在结果页单独列出。两种口径都保留。</p>
 <p>单任务≤30作品、300边、200重复；全局最多3个排队或运行任务。断连与无票输入会留下可追溯失败态。</p>
 </aside>
 </section>
